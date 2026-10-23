@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文件同步助手</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 顶部 -->
+  <div class="appbar">
+    <div class="logo">⇄</div>
+    <div>
+      <div class="appname">文件同步助手 <span class="muted" id="version">v1.0.1</span></div>
+      <div class="appsub">监听目录变更 → 自动复制到目标目录</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="pill off" id="pill"><span class="dot" id="pillDot"></span><span id="pillText">未监听</span></div>
+    <button class="btn" id="btnSettings">⚙ 设置</button>
+  </div>
+
+  <!-- 主体 -->
+  <div class="body">
+    <!-- 1 目录配置 -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="no">1</div><h3>目录配置</h3>
+        <div class="hint">监听目录的内容将同步至目标目录（目标目录不存在时自动创建）</div>
+        <div class="spacer"></div>
+        <button class="btn sm" id="btnSwap" title="互换监听与目标目录">⇅ 互换</button>
+      </div>
+      <div class="card-bd">
+        <div class="dirrow">
+          <div class="lbl">监听目录</div>
+          <div class="input" id="sourceText" title="">未选择</div>
+          <button class="btn" id="btnPickSource">浏览…</button>
+          <button class="btn icon" id="btnOpenSource" title="在资源管理器中打开">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 3H3v10h10v-3M9 2.5h4.5V7M13.5 2.5L7.5 8.5"/></svg>
+          </button>
+        </div>
+        <div class="dirrow">
+          <div class="lbl">目标目录</div>
+          <div class="input" id="targetText" title="">未选择</div>
+          <button class="btn" id="btnPickTarget">浏览…</button>
+          <button class="btn icon" id="btnOpenTarget" title="在资源管理器中打开">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 3H3v10h10v-3M9 2.5h4.5V7M13.5 2.5L7.5 8.5"/></svg>
+          </button>
+        </div>
+        <div class="warnbox hidden" id="watchWarn"><span id="watchWarnText"></span><span class="link" id="watchWarnAction"></span></div>
+      </div>
+    </div>
+
+    <!-- 2 同步设置 -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="no">2</div><h3>同步设置</h3>
+        <div class="spacer"></div>
+        <button class="btn sm" id="btnExcludes">排除规则…</button>
+      </div>
+      <div class="card-bd">
+        <div class="grid3">
+          <div class="col">
+            <div class="grp-title">同步模式</div>
+            <div class="radio sel" data-group="mode" data-value="incremental">
+              <div class="mark"></div>
+              <div>
+                <div class="opt-main">增量替换</div>
+                <div class="opt-sub">仅复制新增 / 有变更的文件<br />目标目录多余文件保留</div>
+              </div>
+            </div>
+            <div class="radio" data-group="mode" data-value="mirror" style="margin-top:4px">
+              <div class="mark"></div>
+              <div>
+                <div class="opt-main">整体替换</div>
+                <div class="opt-sub">镜像源目录，目标多余文件被删除<br />（默认移入回收站）</div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="grp-title">执行方式</div>
+            <div class="radio sel" data-group="trigger" data-value="auto">
+              <div class="mark"></div>
+              <div>
+                <div class="opt-main">自动同步</div>
+                <div class="opt-sub">检测到变更后自动执行</div>
+              </div>
+            </div>
+            <div class="radio" data-group="trigger" data-value="manual" style="margin-top:4px">
+              <div class="mark"></div>
+              <div>
+                <div class="opt-main">手动同步</div>
+                <div class="opt-sub">仅提示，需点击「立即同步」</div>
+              </div>
+            </div>
+            <div class="inline" style="margin-top:10px">
+              <span class="muted">防抖延迟</span>
+              <select id="debounce">
+                <option value="500">0.5 秒</option>
+                <option value="1000">1 秒</option>
+                <option value="3000">3 秒</option>
+                <option value="5000">5 秒</option>
+                <option value="10000">10 秒</option>
+                <option value="30000">30 秒</option>
+              </select>
+            </div>
+          </div>
+          <div class="col">
+            <div class="grp-title">通知与后台</div>
+            <div class="check sel" data-group="notify" data-value="onPending">
+              <div class="mark"></div>
+              <div><div class="opt-main">可同步通知</div>
+                   <div class="opt-sub">检测到变更时提醒“有待同步内容”</div></div>
+            </div>
+            <div class="check sel" data-group="notify" data-value="onComplete" style="margin-top:3px">
+              <div class="mark"></div>
+              <div><div class="opt-main">同步完成通知</div>
+                   <div class="opt-sub">完成后提示文件数与耗时</div></div>
+            </div>
+            <div class="check sel" data-group="notify" data-value="onError" style="margin-top:3px">
+              <div class="mark"></div>
+              <div><div class="opt-main">同步失败通知</div></div>
+            </div>
+            <div class="check sel" data-group="notify" data-value="closeToTray" style="margin-top:3px">
+              <div class="mark"></div>
+              <div><div class="opt-main">关闭时最小化到托盘</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="rulebar">
+          <span class="grp-title flat">目录异常处理</span>
+          <span class="muted">监听目录缺失时</span>
+          <label class="numfield">每 <input class="num" id="retryInterval" type="number" min="1" max="3600" step="1" /> 秒重试</label>
+          <label class="numfield">最多 <input class="num" id="retryMax" type="number" min="0" max="9999" step="1" /> 次</label>
+          <label class="numfield">最长等待 <input class="num" id="retryTimeout" type="number" min="0" max="86400" step="10" /> 秒</label>
+          <span class="muted-2">0 = 不限；超限自动停止监听并提示</span>
+        </div>
+        <div class="warnbox hidden" id="mirrorWarn">
+          ⚠ 当前为「整体替换」模式：目标目录中源目录不存在的文件将被<b>移入回收站</b>，执行前会提示确认。
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 历史选项列表 -->
+    <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:220px">
+      <div class="card-hd">
+        <div class="no">3</div><h3>历史选项列表</h3>
+        <div class="hint">点击行可载入该方案</div>
+        <div class="spacer"></div>
+        <button class="btn sm" id="btnSavePlan">＋ 保存当前为方案</button>
+        <button class="btn sm" id="btnClearPlans">清空历史</button>
+      </div>
+      <div class="listwrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>方案名称</th><th>监听目录</th><th>目标目录</th>
+              <th>模式</th><th>方式</th><th>上次同步</th><th style="text-align:right">操作</th>
+            </tr>
+          </thead>
+          <tbody id="plansBody"></tbody>
+        </table>
+      </div>
+      <div class="listfoot">
+        <span id="planCount">共 0 条记录</span>
+        <div class="spacer"></div>
+        <span>日志目录：<span id="logDir">—</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部操作栏 -->
+  <div class="footer">
+    <div class="prog">
+      <div class="bar"><i id="progressFill"></i></div>
+      <div class="txt">
+        <span class="cur" id="progressCurrent">就绪</span>
+        <span id="progressStats">—</span>
+      </div>
+    </div>
+    <button class="btn" id="btnToggleWatch">▶ 开始监听</button>
+    <button class="btn primary" id="btnSyncNow">⟳ 立即同步</button>
+    <button class="btn danger hidden" id="btnCancel" style="display:none">■ 取消</button>
+  </div>
+
+  <!-- 设置弹窗 -->
+  <div class="mask hidden" id="settingsMask">
+    <div class="dialog">
+      <div class="dialog-hd">⚙ 设置</div>
+      <div class="dialog-bd">
+        <div class="field">
+          <label>界面主题</label>
+          <select id="setTheme" style="width:100%">
+            <option value="system">跟随系统</option>
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>历史方案条数上限</label>
+          <input class="text" id="setMaxHistory" type="number" min="5" max="200" step="5" />
+        </div>
+        <div class="field">
+          <label>
+            <span class="check sel" data-group="app" data-value="autoStart" style="display:inline-flex">
+              <span class="mark"></span><span class="opt-main">开机自动启动</span>
+            </span>
+          </label>
+        </div>
+        <div class="field">
+          <label>
+            <span class="check sel" data-group="app" data-value="minimizeToTray" style="display:inline-flex">
+              <span class="mark"></span><span class="opt-main">最小化时隐藏到托盘</span>
+            </span>
+          </label>
+        </div>
+        <div class="field">
+          <label>
+            <span class="check sel" data-group="app" data-value="mirrorDeleteToRecycleBin" style="display:inline-flex">
+              <span class="mark"></span><span class="opt-main">整体替换删除文件时移入回收站</span>
+            </span>
+          </label>
+          <div class="opt-sub" style="margin-top:6px">关闭后为永久删除，不可恢复。</div>
+        </div>
+        <div class="field">
+          <label>
+            <span class="check sel" data-group="app" data-value="strictHash" style="display:inline-flex">
+              <span class="mark"></span><span class="opt-main">严格校验（小于 10MB 的文件比对内容哈希）</span>
+            </span>
+          </label>
+          <div class="opt-sub" style="margin-top:6px">更准确但更慢，适合对时间戳不可靠的场景。</div>
+        </div>
+        <div class="field">
+          <label>数据目录</label>
+          <div class="kv">
+            <div class="k">配置</div><div class="v" id="setDataDir">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-ft">
+        <button class="btn" id="btnTestNotify">测试通知</button>
+        <div class="spacer"></div>
+        <button class="btn" id="btnOpenLogs">打开日志目录</button>
+        <button class="btn primary" id="btnSettingsOk">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 排除规则弹窗 -->
+  <div class="mask hidden" id="excludeMask">
+    <div class="dialog">
+      <div class="dialog-hd">排除规则</div>
+      <div class="dialog-bd">
+        <div class="field">
+          <label>每行一条，支持通配符 <code>*</code> 与 <code>?</code>（匹配文件名或路径中的任意一级目录）</label>
+          <textarea class="area" id="excludeArea" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="dialog-ft">
+        <button class="btn" id="btnExcludeReset">恢复默认</button>
+        <div class="spacer"></div>
+        <button class="btn" id="btnExcludeCancel">取消</button>
+        <button class="btn primary" id="btnExcludeOk">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 保存方案弹窗 -->
+  <div class="mask hidden" id="planMask">
+    <div class="dialog">
+      <div class="dialog-hd">保存为方案</div>
+      <div class="dialog-bd">
+        <div class="field">
+          <label>方案名称</label>
+          <input class="text" id="planName" placeholder="例如：项目源数据 → 备份" />
+        </div>
+      </div>
+      <div class="dialog-ft">
+        <button class="btn" id="btnPlanCancel">取消</button>
+        <button class="btn primary" id="btnPlanOk">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 整体替换确认弹窗 -->
+  <div class="mask hidden" id="mirrorMask">
+    <div class="dialog">
+      <div class="dialog-hd" style="color:var(--danger)">⚠ 整体替换确认</div>
+      <div class="dialog-bd">
+        <p style="margin-top:0">「整体替换」会镜像源目录，<b>目标目录中不存在于源目录的文件将被删除</b>（默认移入回收站）。</p>
+        <div class="kv">
+          <div class="k">监听目录</div><div class="v" id="mirrorSrc">—</div>
+          <div class="k">目标目录</div><div class="v" id="mirrorDst">—</div>
+        </div>
+        <p style="margin-bottom:0">请确认目标目录内容可被覆盖与删除。</p>
+      </div>
+      <div class="dialog-ft">
+        <button class="btn" id="btnMirrorCancel">取消</button>
+        <button class="btn danger" id="btnMirrorOk">确认执行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案详情弹窗 -->
+  <div class="mask hidden" id="detailMask">
+    <div class="dialog wide">
+      <div class="dialog-hd">方案详情</div>
+      <div class="dialog-bd" id="detailBody">—</div>
+      <div class="dialog-ft">
+        <button class="btn primary" id="btnDetailOk">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通用确认弹窗（删除方案 / 清空历史） -->
+  <div class="mask hidden" id="confirmMask">
+    <div class="dialog">
+      <div class="dialog-hd" id="confirmTitle">确认操作</div>
+      <div class="dialog-bd">
+        <p style="margin:0" id="confirmBody">确定吗？</p>
+      </div>
+      <div class="dialog-ft">
+        <button class="btn" id="btnConfirmCancel">取消</button>
+        <button class="btn danger" id="btnConfirmOk">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-host" id="toastHost"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

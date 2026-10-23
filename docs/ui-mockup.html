@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>文件同步助手 — 界面稿</title>
+<style>
+  :root{
+    --bg:#eef1f5;
+    --appbar:#ffffff;
+    --card:#ffffff;
+    --line:#e4e7ec;
+    --line-strong:#d3d8e0;
+    --text:#1b2430;
+    --muted:#6b7683;
+    --muted-2:#98a1ad;
+    --primary:#2f6bff;
+    --primary-dark:#1f55e0;
+    --primary-soft:#eaf0ff;
+    --success:#16a34a;
+    --success-soft:#e8f7ee;
+    --warn:#c9780a;
+    --warn-soft:#fdf3e3;
+    --danger:#dc2626;
+    --danger-soft:#fdeceb;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Microsoft YaHei UI","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    font-size:13px; -webkit-font-smoothing:antialiased;
+  }
+  /* ---------- 窗口外框（模拟桌面窗口） ---------- */
+  .desktop{padding:26px; display:flex; justify-content:center;}
+  .window{
+    width:960px; height:700px; background:var(--bg); border:1px solid #c9d0da;
+    border-radius:8px; overflow:hidden; display:flex; flex-direction:column;
+    box-shadow:0 18px 48px rgba(23,34,54,.22), 0 2px 6px rgba(23,34,54,.10);
+  }
+
+  /* ---------- 标题栏 ---------- */
+  .titlebar{
+    height:34px; background:linear-gradient(#fbfcfe,#f2f5f9); border-bottom:1px solid var(--line);
+    display:flex; align-items:center; padding:0 4px 0 12px; gap:8px; flex:none;
+  }
+  .titlebar .app-ico{
+    width:16px;height:16px;border-radius:4px;background:var(--primary);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;
+  }
+  .titlebar .t{font-size:12.5px;color:#43505f;}
+  .titlebar .spacer{flex:1;}
+  .winbtn{width:42px;height:34px;display:flex;align-items:center;justify-content:center;color:#5a6675;}
+  .winbtn.close{color:#c0392b;}
+  .winbtn svg{width:10px;height:10px;}
+
+  /* ---------- 顶部工具区 ---------- */
+  .appbar{
+    flex:none; background:var(--appbar); border-bottom:1px solid var(--line);
+    padding:12px 18px; display:flex; align-items:center; gap:12px;
+  }
+  .logo{
+    width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#2f6bff,#6f9bff);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;
+  }
+  .appname{font-size:15px;font-weight:600;letter-spacing:.2px;}
+  .appsub{font-size:11.5px;color:var(--muted-2);margin-top:1px;}
+  .appbar .spacer{flex:1;}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:13px;
+    font-size:12px;font-weight:600;
+  }
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .pill.on{background:var(--success-soft);color:var(--success);}
+  .pill.off{background:#eef1f5;color:var(--muted);}
+  .pill.busy{background:var(--primary-soft);color:var(--primary);}
+
+  /* ---------- 内容区 ---------- */
+  .body{flex:1; overflow:auto; padding:14px 18px 16px; display:flex; flex-direction:column; gap:12px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+        box-shadow:0 1px 2px rgba(23,34,54,.04);}
+  .card-hd{
+    display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);
+  }
+  .card-hd .no{
+    width:18px;height:18px;border-radius:5px;background:#eef2f9;color:#54627a;
+    font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  .card-hd h3{margin:0;font-size:13px;font-weight:600;}
+  .card-hd .hint{font-size:11.5px;color:var(--muted-2);}
+  .card-hd .spacer{flex:1;}
+  .card-bd{padding:13px 14px;}
+
+  /* 目录行 */
+  .dirrow{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .dirrow:last-child{margin-bottom:0;}
+  .dirrow .lbl{width:74px;flex:none;color:var(--muted);font-size:12.5px;}
+  .input{
+    flex:1;height:32px;border:1px solid var(--line-strong);border-radius:7px;background:#fcfdff;
+    display:flex;align-items:center;padding:0 10px;color:#2a3543;font-size:12.5px;
+    font-family:Consolas,monospace;
+  }
+  .input.ph{color:var(--muted-2);}
+  .btn{
+    height:32px;padding:0 13px;border-radius:7px;border:1px solid var(--line-strong);
+    background:#fff;color:#37455a;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;
+    cursor:pointer;white-space:nowrap;
+  }
+  .btn:hover{background:#f6f8fb;}
+  .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600;}
+  .btn.primary:hover{background:var(--primary-dark);}
+  .btn.danger{color:var(--danger);border-color:#f0c8c5;}
+  .btn.sm{height:26px;padding:0 9px;font-size:12px;border-radius:6px;}
+  .btn svg{width:13px;height:13px;}
+  .icon-btn{width:32px;padding:0;justify-content:center;}
+
+  /* 设置网格 */
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:0 18px;}
+  .grp-title{font-size:11.5px;color:var(--muted-2);margin-bottom:8px;letter-spacing:.3px;}
+  .radio,.check{display:flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:pointer;}
+  .mark{
+    width:15px;height:15px;flex:none;margin-top:1px;border:1.5px solid #b9c1cd;background:#fff;
+  }
+  .radio .mark{border-radius:50%;}
+  .check .mark{border-radius:4px;}
+  .radio.sel .mark{border-color:var(--primary);box-shadow:inset 0 0 0 3.5px #fff,inset 0 0 0 9px var(--primary);}
+  .check.sel .mark{background:var(--primary);border-color:var(--primary);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M3.5 8.5l3 3 6-6.5'/></svg>");
+    background-size:12px;background-repeat:no-repeat;background-position:center;}
+  .opt-main{font-size:12.5px;line-height:1.35;}
+  .opt-sub{font-size:11px;color:var(--muted-2);margin-top:2px;line-height:1.4;}
+  .divider{width:1px;background:var(--line);}
+  select{
+    height:28px;border:1px solid var(--line-strong);border-radius:6px;background:#fff;color:#37455a;
+    font-size:12px;padding:0 6px;font-family:inherit;
+  }
+  .inline{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#37455a;}
+  .warnbox{
+    margin-top:10px;background:var(--warn-soft);border:1px solid #f2ddb6;color:#8a5a08;
+    border-radius:7px;padding:7px 10px;font-size:11.5px;line-height:1.5;
+  }
+  .warnbox.danger{background:#fdeceb;border-color:#dc2626;color:#dc2626;}
+  .link{
+    display:inline-block;margin-left:8px;padding:0 7px;line-height:17px;
+    border:1px solid currentColor;border-radius:4px;text-decoration:none;cursor:pointer;opacity:.8;
+  }
+  .rulebar{
+    margin-top:12px;padding-top:11px;border-top:1px dashed var(--line);
+    display:flex;align-items:center;flex-wrap:wrap;gap:6px 9px;font-size:12.5px;
+  }
+  .grp-title.flat{margin:0;padding:1px 7px;border-radius:5px;background:var(--hover);color:var(--muted);}
+  .numfield{display:inline-flex;align-items:center;gap:5px;color:var(--muted);}
+  .num{
+    width:52px;height:26px;border:1px solid var(--line-strong);border-radius:6px;
+    background:#fff;color:#37455a;font-family:inherit;font-size:12px;
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+
+  /* 历史表 */
+  .tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .tbl th{
+    text-align:left;font-weight:600;color:var(--muted);font-size:11.5px;padding:7px 10px;
+    background:#f7f9fc;border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  .tbl td{padding:8px 10px;border-bottom:1px solid #f0f2f6;vertical-align:middle;}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl tr:hover td{background:#fafbfe;}
+  .path{font-family:Consolas,monospace;font-size:12px;color:#33404f;
+        max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;}
+  .tag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:600;}
+  .tag.mirror{background:#fdeceb;color:#c0392b;}
+  .tag.incr{background:#eaf0ff;color:var(--primary-dark);}
+  .tag.auto{background:var(--success-soft);color:var(--success);}
+  .tag.manual{background:#f0f2f6;color:var(--muted);}
+  .tag.state{background:#eef1f5;color:#54627a;}
+  .status-ok{color:var(--success);font-weight:600;}
+  .status-err{color:var(--danger);font-weight:600;}
+  .muted{color:var(--muted-2);}
+  .row-actions{display:flex;gap:5px;justify-content:flex-end;}
+  .listwrap{max-height:206px;overflow:auto;}
+  .listfoot{display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--line);
+            font-size:11.5px;color:var(--muted-2);}
+
+  /* ---------- 底部操作栏 ---------- */
+  .footer{
+    flex:none;background:#fff;border-top:1px solid var(--line);padding:10px 18px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .prog{flex:1;min-width:0;}
+  .prog .bar{height:7px;border-radius:4px;background:#e9edf3;overflow:hidden;}
+  .prog .bar > i{display:block;height:100%;width:62%;border-radius:4px;
+    background:linear-gradient(90deg,#2f6bff,#6f9bff);}
+  .prog .txt{display:flex;justify-content:space-between;gap:10px;margin-top:5px;
+    font-size:11.5px;color:var(--muted);}
+  .prog .txt .cur{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    font-family:Consolas,monospace;}
+  .footer .spacer{flex:1;}
+
+  /* 托盘/次级窗口示意 */
+  .side{display:flex;gap:14px;justify-content:center;margin-top:22px;flex-wrap:wrap;}
+  .mini{background:#fff;border:1px solid var(--line);border-radius:8px;width:230px;
+        box-shadow:0 6px 18px rgba(23,34,54,.10);overflow:hidden;font-size:12px;}
+  .mini .mh{padding:7px 10px;border-bottom:1px solid var(--line);font-weight:600;color:#43505f;
+    display:flex;align-items:center;gap:6px;background:#fafbfe;font-size:12px;}
+  .mini .mi{padding:7px 10px;border-bottom:1px solid #f4f6f9;color:#37455a;}
+  .mini .mi:last-child{border-bottom:none;}
+  .caption{text-align:center;color:var(--muted-2);font-size:11.5px;margin-top:8px;}
+  .cap-block{width:230px;}
+  .toast{background:#fff;border:1px solid var(--line);border-radius:8px;width:230px;padding:10px;
+         box-shadow:0 6px 18px rgba(23,34,54,.12);font-size:12px;}
+  .toast .tt{font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+  .toast .tb{color:var(--muted);font-size:11.5px;line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="desktop">
+  <div class="window">
+    <!-- 标题栏 -->
+    <div class="titlebar">
+      <div class="app-ico">⇄</div>
+      <div class="t">文件同步助手</div>
+      <div class="spacer"></div>
+      <div class="winbtn"><svg viewBox="0 0 10 10"><rect x="0" y="4.5" width="10" height="1" fill="currentColor"/></svg></div>
+      <div class="winbtn"><svg viewBox="0 0 10 10"><rect x="0" y="0" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></div>
+      <div class="winbtn close"><svg viewBox="0 0 10 10"><path d="M0 0 L10 10 M10 0 L0 10" stroke="currentColor" stroke-width="1.3"/></svg></div>
+    </div>
+
+    <!-- 顶部 -->
+    <div class="appbar">
+      <div class="logo">⇄</div>
+      <div>
+        <div class="appname">文件同步助手 <span class="muted" style="font-size:11px;font-weight:400">v1.0.1</span></div>
+        <div class="appsub">监听目录变更 → 自动复制到目标目录</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="pill on" id="pill"><span class="dot"></span><span id="pillTxt">监听中</span></div>
+      <div class="btn" title="设置">⚙ 设置</div>
+    </div>
+
+    <div class="body">
+      <!-- 1 目录配置 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="no">1</div><h3>目录配置</h3>
+          <div class="hint">监听目录的内容将同步至目标目录（目标目录不存在时自动创建）</div>
+          <div class="spacer"></div>
+          <div class="btn sm" title="互换">⇅ 互换</div>
+        </div>
+        <div class="card-bd">
+          <div class="dirrow">
+            <div class="lbl">监听目录</div>
+            <div class="input">D:\项目\源数据</div>
+            <div class="btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 3.5h4l1.5 2h7.5v7.5h-13z"/></svg>浏览…</div>
+            <div class="btn icon-btn" title="在资源管理器中打开"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 3H3v10h10v-3M9 2.5h4.5V7M13.5 2.5L7.5 8.5"/></svg></div>
+          </div>
+          <div class="dirrow">
+            <div class="lbl">目标目录</div>
+            <div class="input">E:\备份\目标数据</div>
+            <div class="btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 3.5h4l1.5 2h7.5v7.5h-13z"/></svg>浏览…</div>
+            <div class="btn icon-btn" title="在资源管理器中打开"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 3H3v10h10v-3M9 2.5h4.5V7M13.5 2.5L7.5 8.5"/></svg></div>
+          </div>
+          <div class="warnbox">
+            ⚠ 监听目录不存在：D:\项目\源数据　将在 <b>8</b> 秒后重试（第 2 / 30 次，最长等待 5 分钟）<span class="link">取消监听</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 同步设置 -->
+      <div class="card">
+        <div class="card-hd">
+          <div class="no">2</div><h3>同步设置</h3>
+          <div class="spacer"></div>
+          <div class="btn sm">排除规则…</div>
+        </div>
+        <div class="card-bd">
+          <div class="grid3">
+            <div>
+              <div class="grp-title">同步模式</div>
+              <div class="radio sel"><div class="mark"></div>
+                <div><div class="opt-main">增量替换</div>
+                     <div class="opt-sub">仅复制新增 / 有变更的文件<br>目标目录多余文件保留</div></div>
+              </div>
+              <div class="radio" style="margin-top:4px"><div class="mark"></div>
+                <div><div class="opt-main">整体替换</div>
+                     <div class="opt-sub">镜像源目录，目标多余文件被删除<br>（删除项可进回收站）</div></div>
+              </div>
+            </div>
+            <div style="border-left:1px solid var(--line);padding-left:18px">
+              <div class="grp-title">执行方式</div>
+              <div class="radio sel"><div class="mark"></div>
+                <div><div class="opt-main">自动同步</div>
+                     <div class="opt-sub">检测到变更后自动执行</div></div>
+              </div>
+              <div class="radio" style="margin-top:4px"><div class="mark"></div>
+                <div><div class="opt-main">手动同步</div>
+                     <div class="opt-sub">仅提示，需点击“立即同步”</div></div>
+              </div>
+              <div class="inline" style="margin-top:10px">
+                <span>防抖延迟</span>
+                <select><option>1 秒</option><option>3 秒</option><option>5 秒</option><option>10 秒</option></select>
+              </div>
+            </div>
+            <div style="border-left:1px solid var(--line);padding-left:18px">
+              <div class="grp-title">通知与后台</div>
+              <div class="check sel"><div class="mark"></div>
+                <div><div class="opt-main">可同步通知</div>
+                     <div class="opt-sub">检测到变更时提醒“有待同步内容”</div></div></div>
+              <div class="check sel" style="margin-top:3px"><div class="mark"></div>
+                <div><div class="opt-main">同步完成通知</div>
+                     <div class="opt-sub">完成后弹窗提示文件数与耗时</div></div></div>
+              <div class="check sel" style="margin-top:3px"><div class="mark"></div>
+                <div><div class="opt-main">最小化到托盘 / 开机自启</div></div></div>
+            </div>
+          </div>
+          <div class="rulebar">
+            <span class="grp-title flat">目录异常处理</span>
+            <span style="color:var(--muted)">监听目录缺失时</span>
+            <label class="numfield">每 <span class="num">10</span> 秒重试</label>
+            <label class="numfield">最多 <span class="num">30</span> 次</label>
+            <label class="numfield">最长等待 <span class="num">300</span> 秒</label>
+            <span style="color:var(--muted-2)">0 = 不限；超限自动停止监听并提示</span>
+          </div>
+          <div class="warnbox">
+            ⚠ 当前为「整体替换」模式时将删除目标目录中源目录不存在的文件，执行前会二次确认。
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 历史选项列表 -->
+      <div class="card" style="flex:1;display:flex;flex-direction:column">
+        <div class="card-hd">
+          <div class="no">3</div><h3>历史选项列表</h3>
+          <div class="hint">点击行可载入该配置到上方</div>
+          <div class="spacer"></div>
+          <div class="btn sm">＋ 保存当前为方案</div>
+          <div class="btn sm">清空历史</div>
+        </div>
+        <div class="listwrap" style="flex:1">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th></th><th>方案名称</th><th>监听目录</th><th>目标目录</th>
+                <th>模式</th><th>方式</th><th>上次同步</th><th style="text-align:right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="tag state">当前</span></td>
+                <td>项目源数据 → 备份</td>
+                <td><span class="path">D:\项目\源数据</span></td>
+                <td><span class="path">E:\备份\目标数据</span></td>
+                <td><span class="tag incr">增量</span></td>
+                <td><span class="tag auto">自动</span></td>
+                <td>今天 14:22 <span class="status-ok">成功 12</span></td>
+                <td><div class="row-actions">
+                  <div class="btn sm">立即同步</div><div class="btn sm">详情</div><div class="btn sm danger">删除</div>
+                </div></td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>设计稿 → 共享盘</td>
+                <td><span class="path">C:\Users\me\Desktop\设计稿</span></td>
+                <td><span class="path">\\NAS\share\design</span></td>
+                <td><span class="tag incr">增量</span></td>
+                <td><span class="tag manual">手动</span></td>
+                <td>今天 09:41 <span class="status-ok">成功 3</span></td>
+                <td><div class="row-actions">
+                  <div class="btn sm">立即同步</div><div class="btn sm">详情</div><div class="btn sm danger">删除</div>
+                </div></td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>文档镜像（整机备份）</td>
+                <td><span class="path">D:\Documents</span></td>
+                <td><span class="path">E:\Mirror\Documents</span></td>
+                <td><span class="tag mirror">整体</span></td>
+                <td><span class="tag auto">自动</span></td>
+                <td>昨天 18:07 <span class="status-err">失败 1</span></td>
+                <td><div class="row-actions">
+                  <div class="btn sm">立即同步</div><div class="btn sm">详情</div><div class="btn sm danger">删除</div>
+                </div></td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>素材库增量同步</td>
+                <td><span class="path">F:\素材</span></td>
+                <td><span class="path">D:\素材镜像</span></td>
+                <td><span class="tag incr">增量</span></td>
+                <td><span class="tag auto">自动</span></td>
+                <td>10-17 20:15 <span class="status-ok">成功 128</span></td>
+                <td><div class="row-actions">
+                  <div class="btn sm">立即同步</div><div class="btn sm">详情</div><div class="btn sm danger">删除</div>
+                </div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="listfoot">
+          共 4 条记录 · 最多保留 50 条 · 双击行载入配置
+          <div class="spacer" style="flex:1"></div>
+          <span>日志：%APPDATA%\FileSync\logs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部操作栏 -->
+    <div class="footer">
+      <div class="prog">
+        <div class="bar"><i></i></div>
+        <div class="txt">
+          <span class="cur">正在复制 D:\项目\源数据\images\banner_03.png</span>
+          <span>12 / 19 · 失败 0 · 02:17</span>
+        </div>
+      </div>
+      <div class="spacer" style="flex:none"></div>
+      <div class="btn" onclick="toggleRun()" id="runBtn">■ 停止监听</div>
+      <div class="btn primary" onclick="syncNow()">⟳ 立即同步</div>
+    </div>
+  </div>
+</div>
+
+<!-- 托盘菜单 + 通知示意 -->
+<div class="side">
+  <div class="cap-block">
+    <div class="mini">
+      <div class="mh">⇄ 文件同步助手</div>
+      <div class="mi">打开主界面</div>
+      <div class="mi">立即同步（当前方案）</div>
+      <div class="mi">暂停监听</div>
+      <div class="mi">— — — — —</div>
+      <div class="mi">退出</div>
+    </div>
+    <div class="caption">托盘右键菜单</div>
+  </div>
+  <div class="cap-block">
+    <div class="toast">
+      <div class="tt" style="color:#c9780a">● 检测到文件变更</div>
+      <div class="tb">D:\项目\源数据 有 3 项变化，正在自动同步…</div>
+    </div>
+    <div class="toast" style="margin-top:10px">
+      <div class="tt" style="color:#16a34a">✔ 同步完成</div>
+      <div class="tb">新增 3 · 更新 1 · 删除 0 · 耗时 2.4 秒<br>目标：E:\备份\目标数据</div>
+    </div>
+    <div class="caption">可同步通知 / 同步完成通知</div>
+  </div>
+</div>
+
+<script>
+  function toggleRun(){
+    const on = document.getElementById('pill').classList.contains('on');
+    const pill = document.getElementById('pill');
+    const txt = document.getElementById('pillTxt');
+    const btn = document.getElementById('runBtn');
+    if(on){
+      pill.className='pill off'; txt.textContent='已停止';
+      btn.textContent='▶ 开始监听';
+    }else{
+      pill.className='pill on'; txt.textContent='监听中';
+      btn.textContent='■ 停止监听';
+    }
+  }
+  function syncNow(){
+    const pill=document.getElementById('pill'), txt=document.getElementById('pillTxt');
+    pill.className='pill busy'; txt.textContent='同步中…';
+    setTimeout(()=>{ pill.className='pill on'; txt.textContent='监听中'; },1600);
+  }
+  document.querySelectorAll('.radio').forEach(el=>el.addEventListener('click',()=>{
+    const p=el.parentElement;
+    p.querySelectorAll('.radio').forEach(r=>r.classList.remove('sel'));
+    el.classList.add('sel');
+  }));
+  document.querySelectorAll('.check').forEach(el=>el.addEventListener('click',()=>el.classList.toggle('sel')));
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "filesync",
+  "private": true,
+  "version": "1.0.0",
+  "description": "文件同步助手 - 监听目录变更并同步到目标目录",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
